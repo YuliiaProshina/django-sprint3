@@ -1,9 +1,8 @@
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
-from blog.models import Category, Post
-
 from blog.constants import VISIBLE_POSTS_NUMBER
+from blog.models import Category, Post
 
 
 def get_posts_queryset():
