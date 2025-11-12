@@ -1,15 +1,25 @@
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-from .models import Post, Category
+
+from blog.models import Category, Post
+
+
+VISIBLE_POSTS_NUMBER = 5
+
+
+def get_posts_queryset():
+    """Возвращает базовый QuerySet опубликованных постов с нужными связями."""
+    return (
+        Post.objects.select_related('category')
+        .filter(is_published=True, pub_date__lte=timezone.now(),
+                category__is_published=True)
+    )
 
 
 def index(request):
     """Рендеринг главной страницы."""
-    post_list = Post.objects.filter(
-        pub_date__lte=timezone.now(),
-        is_published=True,
-        category__is_published=True
-    ).order_by('-pub_date')[:5]
+    post_list = get_posts_queryset().order_by(
+        '-pub_date')[:VISIBLE_POSTS_NUMBER]
     context = {
         'post_list': post_list
     }
@@ -19,10 +29,7 @@ def index(request):
 def post_detail(request, post_id):
     """Рендеринг страницы статьи."""
     post = get_object_or_404(
-        Post.objects.filter(
-            pub_date__lte=timezone.now(),
-            is_published=True,
-            category__is_published=True),
+        get_posts_queryset(),
         pk=post_id
     )
     context = {
@@ -38,11 +45,8 @@ def category_posts(request, category_slug):
         slug=category_slug,
         is_published=True
     )
-    posts = Post.objects.filter(
-        category=category.id,
-        is_published=True,
-        pub_date__lte=timezone.now()
-    ).order_by('-pub_date')
+    posts = get_posts_queryset().filter(
+        category=category.id).order_by('-pub_date')
 
     context = {
         'category': category,
