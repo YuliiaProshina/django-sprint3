@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from blog.constants import TITLE_LIMIT
+
 User = get_user_model()
 
 
-class BaseModel(models.Model):
+class PublishedCreatedModel(models.Model):
     is_published = models.BooleanField(
         default=True,
         verbose_name='Опубликовано',
@@ -15,22 +17,22 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
-        default_related_name = '%(model_name)s'
+        default_related_name = '%(model_name)ss'
         ordering = ['-created_at']
 
 
-class Location(BaseModel):
+class Location(PublishedCreatedModel):
     name = models.CharField(max_length=256, verbose_name='Название места')
 
-    class Meta:
+    class Meta(PublishedCreatedModel.Meta):
         verbose_name = 'местоположение'
         verbose_name_plural = 'Местоположения'
 
     def __str__(self):
-        return self.name
+        return self.name[:TITLE_LIMIT]
 
 
-class Category(BaseModel):
+class Category(PublishedCreatedModel):
     title = models.CharField(max_length=256, verbose_name='Заголовок')
     description = models.TextField(verbose_name='Описание')
     slug = models.SlugField(
@@ -42,15 +44,15 @@ class Category(BaseModel):
             'дефис и подчёркивание.')
     )
 
-    class Meta:
+    class Meta(PublishedCreatedModel.Meta):
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.title
+        return self.title[:TITLE_LIMIT]
 
 
-class Post(BaseModel):
+class Post(PublishedCreatedModel):
     title = models.CharField(max_length=256, verbose_name='Заголовок')
     text = models.TextField(verbose_name='Текст')
     pub_date = models.DateTimeField(
@@ -78,9 +80,9 @@ class Post(BaseModel):
         verbose_name='Категория'
     )
 
-    class Meta:
+    class Meta(PublishedCreatedModel.Meta):
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
 
     def __str__(self):
-        return self.title[:30]
+        return self.title[:TITLE_LIMIT]

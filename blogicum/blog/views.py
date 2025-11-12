@@ -3,14 +3,13 @@ from django.utils import timezone
 
 from blog.models import Category, Post
 
-
-VISIBLE_POSTS_NUMBER = 5
+from blog.constants import VISIBLE_POSTS_NUMBER
 
 
 def get_posts_queryset():
     """Возвращает базовый QuerySet опубликованных постов с нужными связями."""
     return (
-        Post.objects.select_related('category')
+        Post.objects.select_related('category', 'author', 'location')
         .filter(is_published=True, pub_date__lte=timezone.now(),
                 category__is_published=True)
     )
@@ -46,7 +45,7 @@ def category_posts(request, category_slug):
         is_published=True
     )
     posts = get_posts_queryset().filter(
-        category=category.id).order_by('-pub_date')
+        category=category).order_by('-pub_date')
 
     context = {
         'category': category,
